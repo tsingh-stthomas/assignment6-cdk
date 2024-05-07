@@ -2,8 +2,9 @@ from aws_cdk import (
     aws_ec2 as ec2,
     aws_elasticloadbalancingv2 as elbv2,
     aws_iam as iam,
+    CfnOutput,
     Stack,
-    core
+    CfnParameter
 )
 
 from constructs import Construct
@@ -14,9 +15,9 @@ class CdkHwWebServerAlbStack(Stack):
         super().__init__(scope, construct_id, **kwargs)
 
         # Parameters
-        instance_type_input = core.CfnParameter(self, "InstanceType", type="String", description="EC2 instance type")
-        key_pair = core.CfnParameter(self, "KeyPair", type="String", description="EC2 Key Pair")
-        your_ip = core.CfnParameter(self, "YourIp", type="String", description="Your IP address")
+        instance_type_input = CfnParameter(self, "InstanceType", type="String", description="EC2 instance type")
+        key_pair = CfnParameter(self, "KeyPair", type="String", description="EC2 Key Pair")
+        your_ip = CfnParameter(self, "YourIp", type="String", description="Your IP address")
 
         # VPC and Subnets
         vpc = ec2.Vpc(self, "EngineeringVpc",
@@ -56,11 +57,11 @@ class CdkHwWebServerAlbStack(Stack):
                         )
 
         # Load Balancer
-        lb = elbv2.ApplicationLoadBalancer(self, "EngineeringLB",
+        alb = elbv2.ApplicationLoadBalancer(self, "EngineeringLB",
                                            vpc=vpc,
                                            internet_facing=True)
                                            
-        listener = lb.add_listener("Listener", port=80)
+        listener = alb.add_listener("Listener", port=80)
         target_group = listener.add_targets("EngineeringWebservers",
                                             port=80,
                                             targets=[elbv2.InstanceTarget(instance_id=f"web{i}", port=80) for i in range(1, 3)])
